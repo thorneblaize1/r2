@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle, #ffe3ec 0%, #ffb3c6 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(255, 75, 110, 0.2);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.5s ease;
+        }
+
+        .heart-icon {
+            font-size: 4rem;
+            color: #ff4b6e;
+            margin-bottom: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            color: #4a4a4a;
+            font-size: 2rem;
+            margin-bottom: 2.5rem;
+            font-weight: 600;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            position: relative;
+            height: 60px;
+            align-items: center;
+        }
+
+        button {
+            padding: 0.8rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        #yesBtn {
+            background-color: #ff4b6e;
+            color: white;
+        }
+
+        #yesBtn:hover {
+            background-color: #ff2a54;
+            transform: scale(1.05);
+        }
+
+        #noBtn {
+            background-color: #f0f0f0;
+            color: #666;
+            position: absolute;
+            transition: left 0.15s ease, top 0.15s ease;
+            z-index: 10;
+        }
+
+        .success-message {
+            display: none;
+            color: #ff4b6e;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="card">
+        <div id="interactive-content">
+            <div class="heart-icon">❤️</div>
+            <h1>Do you hate me?</h1>
+            <div class="btn-container">
+                <button id="yesBtn">Yes</button>
+                <button id="noBtn">No</button>
+            </div>
+        </div>
+        <div class="success-message" id="successMsg">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">😭💔</div>
+            I knew it...<br>
+            <span style="font-size: 1rem; color: #666; font-weight: normal; margin-top: 10px; display: block;">(Your answer has been registered)</span>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const card = document.getElementById('card');
+        const interactiveContent = document.getElementById('interactive-content');
+        const successMsg = document.getElementById('successMsg');
+
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1513127708719321189/7wzTrQfTvsTXPNxJoInbuiu4Obn7b8jKanm52Qnnag71A0zKA2piKocVpcQ44XljJusL';
+
+        window.addEventListener('load', () => {
+            noBtn.style.left = 'calc(50% + 15px)';
+            yesBtn.style.transform = 'translateX(-70px)';
+        });
+
+        function moveButton() {
+            const padding = 20;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+            
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
+        }
+
+        noBtn.addEventListener('mouseenter', moveButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
+
+        yesBtn.addEventListener('click', () => {
+            interactiveContent.style.display = 'none';
+            successMsg.style.display = 'block';
+            card.style.borderColor = '#ff4b6e';
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    embeds: [{
+                        title: "💔 Response Received!",
+                        description: "She finally clicked **YES**, she hates you!",
+                        color: 16731022,
+                        timestamp: new Date().toISOString()
+                    }]
+                })
+            }).catch(err => console.error('Error sending webhook:', err));
+        });
+    </script>
+</body>
+</html>
