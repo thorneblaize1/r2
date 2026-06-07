@@ -170,7 +170,6 @@
             let browser = "Unknown Browser";
             let hardwareDetail = "Generic Device";
 
-            // Extract hardware rendering chip details securely if available
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -179,7 +178,6 @@
                     if (debugInfo) {
                         const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_VENDOR_STRING) || gl.getParameter(gl.RENDERER);
                         if (renderer) {
-                            // Cleans up verbose rendering strings into easily readable formats
                             hardwareDetail = renderer.replace(/Angle \([^)]*\)\s?/gi, '').trim();
                         }
                     }
