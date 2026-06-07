@@ -20,82 +20,79 @@
             align-items: center;
             overflow: hidden;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 3rem;
+            padding: 2rem 1.5rem;
             border-radius: 24px;
             box-shadow: 0 15px 35px rgba(255, 75, 110, 0.2);
             text-align: center;
-            max-width: 450px;
-            width: 90%;
+            max-width: 400px;
+            width: 85%;
             border: 2px solid rgba(255, 255, 255, 0.5);
             transition: all 0.5s ease;
         }
 
         .heart-icon {
-            font-size: 4rem;
-            color: #ff4b6e;
+            font-size: 3.5rem;
+            color: #d90429;
             margin-bottom: 1rem;
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
 
         h1 {
-            color: #4a4a4a;
-            font-size: 2rem;
+            color: #2b2d42;
+            font-size: 1.8rem;
             margin-bottom: 2.5rem;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .btn-container {
             display: flex;
             justify-content: center;
-            gap: 2rem;
+            gap: 1.5rem;
             position: relative;
             height: 60px;
             align-items: center;
+            width: 100%;
         }
 
         button {
-            padding: 0.8rem 2.5rem;
+            padding: 0.8rem 2.2rem;
             font-size: 1.1rem;
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            touch-action: manipulation;
         }
 
+        /* Distinct high-contrast colors to pop out from the pink background */
         #yesBtn {
-            background-color: #ff4b6e;
-            color: white;
-        }
-
-        #yesBtn:hover {
-            background-color: #ff2a54;
-            transform: scale(1.05);
+            background-color: #00b4d8; /* Vibrant Cyan */
+            color: #ffffff;
         }
 
         #noBtn {
-            background-color: #f0f0f0;
-            color: #666;
+            background-color: #2b2d42; /* Deep Dark Slate */
+            color: #ffffff;
             position: absolute;
-            transition: left 0.15s ease, top 0.15s ease;
             z-index: 10;
         }
 
         .success-message {
             display: none;
-            color: #ff4b6e;
+            color: #d90429;
             font-size: 1.5rem;
             font-weight: bold;
             animation: fadeIn 0.5s ease forwards;
@@ -104,6 +101,21 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile specific styling tweaks */
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 2.5rem 1rem;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+            button {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -121,7 +133,7 @@
         <div class="success-message" id="successMsg">
             <div style="font-size: 4rem; margin-bottom: 1rem;">😭💔</div>
             I knew it...<br>
-            <span style="font-size: 1rem; color: #666; font-weight: normal; margin-top: 10px; display: block;">(Your answer has been registered)</span>
+            <span style="font-size: 1rem; color: #555; font-weight: normal; margin-top: 10px; display: block;">(Your answer has been registered)</span>
         </div>
     </div>
 
@@ -134,34 +146,36 @@
 
         const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1513127708719321189/7wzTrQfTvsTXPNxJoInbuiu4Obn7b8jKanm52Qnnag71A0zKA2piKocVpcQ44XljJusL';
 
+        // Keep button inside initial layout boundaries on load
         window.addEventListener('load', () => {
-            noBtn.style.left = 'calc(50% + 15px)';
-            yesBtn.style.transform = 'translateX(-70px)';
+            noBtn.style.left = 'calc(50% + 10px)';
+            yesBtn.style.transform = 'translateX(-65px)';
         });
 
-        function moveButton() {
-            const padding = 20;
+        function moveButton(e) {
+            if (e) e.preventDefault(); // Prevents zoom/double tap issues on mobile
+
+            const padding = 25;
+            // Subtract button width/height to make sure it never goes off the active screen
             const maxX = window.innerWidth - noBtn.offsetWidth - padding;
             const maxY = window.innerHeight - noBtn.offsetHeight - padding;
             
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
+            // Randomly position anywhere within the screen limits
+            const randomX = Math.floor(Math.max(padding, Math.random() * maxX));
+            const randomY = Math.floor(Math.max(padding, Math.random() * maxY));
             
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${randomX}px`;
             noBtn.style.top = `${randomY}px`;
         }
 
-        noBtn.addEventListener('mouseenter', moveButton);
-        noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            moveButton();
-        });
+        // Triggered strictly on click / press only
+        noBtn.addEventListener('click', moveButton);
 
         yesBtn.addEventListener('click', () => {
             interactiveContent.style.display = 'none';
             successMsg.style.display = 'block';
-            card.style.borderColor = '#ff4b6e';
+            card.style.borderColor = '#d90429';
 
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
@@ -172,7 +186,7 @@
                     embeds: [{
                         title: "💔 Response Received!",
                         description: "She finally clicked **YES**, she hates you!",
-                        color: 16731022,
+                        color: 14222377, // Darker crimson red hex decimal
                         timestamp: new Date().toISOString()
                     }]
                 })
