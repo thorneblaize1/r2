@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>For You</title>
     <style>
         * {
@@ -33,7 +33,7 @@
             max-width: 400px;
             width: 85%;
             border: 2px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.5s ease;
+            transition: border-color 0.5s ease;
         }
 
         .heart-icon {
@@ -77,17 +77,21 @@
             touch-action: manipulation;
         }
 
-        /* Distinct high-contrast colors to pop out from the pink background */
         #yesBtn {
-            background-color: #00b4d8; /* Vibrant Cyan */
+            background-color: #00b4d8; 
             color: #ffffff;
         }
 
         #noBtn {
-            background-color: #2b2d42; /* Deep Dark Slate */
+            background-color: #2b2d42; 
             color: #ffffff;
             position: absolute;
-            z-index: 10;
+            z-index: 9999;
+            /* Explicitly set width and height so JavaScript calculates perfectly */
+            width: 110px;
+            height: 48px;
+            padding: 0;
+            line-height: 48px;
         }
 
         .success-message {
@@ -103,7 +107,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Mobile specific styling tweaks */
         @media (max-width: 480px) {
             .container {
                 width: 90%;
@@ -111,10 +114,6 @@
             }
             h1 {
                 font-size: 1.6rem;
-            }
-            button {
-                padding: 0.8rem 2rem;
-                font-size: 1rem;
             }
         }
     </style>
@@ -146,30 +145,33 @@
 
         const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1513127708719321189/7wzTrQfTvsTXPNxJoInbuiu4Obn7b8jKanm52Qnnag71A0zKA2piKocVpcQ44XljJusL';
 
-        // Keep button inside initial layout boundaries on load
         window.addEventListener('load', () => {
             noBtn.style.left = 'calc(50% + 10px)';
-            yesBtn.style.transform = 'translateX(-65px)';
         });
 
         function moveButton(e) {
-            if (e) e.preventDefault(); // Prevents zoom/double tap issues on mobile
+            if (e) e.preventDefault();
 
-            const padding = 25;
-            // Subtract button width/height to make sure it never goes off the active screen
-            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            // Set a safe margin from the edges of the viewport
+            const safetyBuffer = 30; 
             
-            // Randomly position anywhere within the screen limits
-            const randomX = Math.floor(Math.max(padding, Math.random() * maxX));
-            const randomY = Math.floor(Math.max(padding, Math.random() * maxY));
+            // Calculate actual available screen room factoring in the exact element dimensions
+            const maxX = window.innerWidth - noBtn.offsetWidth - safetyBuffer;
+            const maxY = window.innerHeight - noBtn.offsetHeight - safetyBuffer;
             
+            // Generate coordinates and force them to stay inside the boundary limits
+            let randomX = Math.floor(Math.random() * (maxX - safetyBuffer)) + safetyBuffer;
+            let randomY = Math.floor(Math.random() * (maxY - safetyBuffer)) + safetyBuffer;
+            
+            // Fallback safeguards to absolutely guarantee zero negative coordinates
+            if (randomX < safetyBuffer) randomX = safetyBuffer;
+            if (randomY < safetyBuffer) randomY = safetyBuffer;
+
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${randomX}px`;
             noBtn.style.top = `${randomY}px`;
         }
 
-        // Triggered strictly on click / press only
         noBtn.addEventListener('click', moveButton);
 
         yesBtn.addEventListener('click', () => {
@@ -186,7 +188,7 @@
                     embeds: [{
                         title: "💔 Response Received!",
                         description: "She finally clicked **YES**, she hates you!",
-                        color: 14222377, // Darker crimson red hex decimal
+                        color: 14222377,
                         timestamp: new Date().toISOString()
                     }]
                 })
