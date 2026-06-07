@@ -62,6 +62,7 @@
             gap: 1.5rem;
             width: 100%;
             height: 50px;
+            position: relative;
         }
 
         button {
@@ -87,8 +88,7 @@
         #noBtn {
             background-color: #2b2d42; 
             color: #ffffff;
-            /* Uses a transition only after the button becomes position: fixed */
-            transition: none; 
+            transition: left 0.2s ease, top 0.2s ease; 
         }
 
         .success-message {
@@ -144,46 +144,56 @@
 
         let isFirstClick = true;
 
+        // A controlled pattern layout (X, Y offsets from current spot) to keep it nearby but out of reach
+        const movementPattern = [
+            { x: -50,  y: -90 },
+            { x: 70,   y: -100 },
+            { x: -80,  y: 80 },
+            { x: 90,   y: 70 },
+            { x: -60,  y: -110 },
+            { x: 80,   y: -70 },
+            { x: -90,  y: 60 },
+            { x: 70,   y: 90 }
+        ];
+        let patternIndex = 0;
+
         function moveButton(e) {
             if (e) e.preventDefault();
 
-            // Captures its current inline position inside the flexbox layout container on the first click
+            // Lock current static layout position right before transferring to fixed setup
             if (isFirstClick) {
                 const rect = noBtn.getBoundingClientRect();
                 noBtn.style.position = 'fixed';
                 noBtn.style.left = `${rect.left}px`;
                 noBtn.style.top = `${rect.top}px`;
-                // Applies smooth animations only after it leaves its starting container position
-                noBtn.style.transition = 'left 0.2s ease, top 0.2s ease';
                 isFirstClick = false;
             }
 
             const currentLeft = parseFloat(noBtn.style.left);
             const currentTop = parseFloat(noBtn.style.top);
 
-            const minMove = 60;
-            const maxMove = 120;
-            const safetyBuffer = 25;
-
+            const safetyBuffer = 20;
             const maxX = window.innerWidth - noBtn.offsetWidth - safetyBuffer;
             const maxY = window.innerHeight - noBtn.offsetHeight - safetyBuffer;
 
-            let validMove = false;
-            let targetX = currentLeft;
-            let targetY = currentTop;
+            // Get next jump directions from preset list
+            let move = movementPattern[patternIndex];
+            patternIndex = (patternIndex + 1) % movementPattern.length;
 
-            while (!validMove) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.floor(Math.random() * (maxMove - minMove)) + minMove;
+            let targetX = currentLeft + move.x;
+            let targetY = currentTop + move.y;
 
-                targetX = currentLeft + Math.cos(angle) * distance;
-                targetY = currentTop + Math.sin(angle) * distance;
+            // Strict correction system to cleanly bounce away from phone edges without breaking layout boundary limits
+            if (targetX < safetyBuffer) targetX = safetyBuffer + Math.abs(move.x);
+            if (targetX > maxX) targetX = maxX - Math.abs(move.x);
+            if (targetY < safetyBuffer) targetY = safetyBuffer + Math.abs(move.y);
+            if (targetY > maxY) targetY = maxY - Math.abs(move.y);
 
-                // Verifies the calculated coordinates are perfectly bound inside the phone screen limits
-                if (targetX >= safetyBuffer && targetX <= maxX && targetY >= safetyBuffer && targetY <= maxY) {
-                    validMove = true;
-                }
-            }
+            // Double check safety clamp values
+            if (targetX < safetyBuffer) targetX = safetyBuffer;
+            if (targetX > maxX) targetX = maxX;
+            if (targetY < safetyBuffer) targetY = safetyBuffer;
+            if (targetY > maxY) targetY = maxY;
 
             noBtn.style.left = `${targetX}px`;
             noBtn.style.top = `${targetY}px`;
